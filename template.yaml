@@ -48,6 +48,31 @@ Conditions:
 ##   Template Resources                                                                          ##
 ###################################################################################################
 Resources:
+
+
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+ ## Give API Gateway permissions to write to CloudWatch logs
+ ## CloudWatch Logs role ARN must be set in account settings to enable logging (Service: AmazonApiGateway; Status Code: 400; Error Code: BadRequestException; Request ID: ...)
+ ApiGwAccountConfig:
+    Type: "AWS::ApiGateway::Account"
+    Properties:
+      CloudWatchRoleArn: !GetAtt "ApiGatewayLoggingRole.Arn"
+  ApiGatewayLoggingRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "apigateway.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
   ##   API Gateway                                                                                 
   SiteAPI:
     Type: AWS::Serverless::Api
